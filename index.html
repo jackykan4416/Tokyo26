@@ -202,7 +202,9 @@ body {
 </div>
 
                     <div class="pb-24" ref="itineraryContainer">
-                        <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
+                        <div v-if="selectedDay && groupedItinerary[selectedDay]" 
+     class="space-y-0 transition-opacity duration-500"
+     :class="{ 'opacity-50 grayscale': new Date(selectedDay) < new Date().setHours(0,0,0,0) }">
                             <div class="flex items-center mb-6 mt-2 ml-2">
                                 <div>
                                     <h2 class="text-2xl font-bold text-slate-700 tracking-wide">{{ formatDate(selectedDay) }}</h2>
@@ -968,16 +970,20 @@ const compressImage = (file, maxWidth, quality) => {
                     if (!SHEET_CSV_URL) { useMockData(); return; }
                     Papa.parse(SHEET_CSV_URL, {
                         download: true, header: true, skipEmptyLines: true,
-                        complete: (results) => {
-                            const validData = results.data.filter(row => row.Date && row.Activity);
-                            if(validData.length > 0) { 
-                                itineraryData.value = validData; 
-                                usingMockData.value = false;
-                                const firstDay = validData[0]?.Date.trim();
-                                if(firstDay) selectedDay.value = firstDay;
-                            }
-                            loading.value = false;
-                        }, error: (err) => { console.error(err); loading.value = false; }
+                        
+complete: (results) => {
+    const validData = results.data.filter(row => row.Date && row.Activity);
+    if(validData.length > 0) { 
+        itineraryData.value = validData; 
+        usingMockData.value = false;
+        Vue.nextTick(() => {
+            if (dateKeys.value.length > 0) {
+                selectedDay.value = dateKeys.value[0];
+            }
+        });
+    }
+    loading.value = false;
+}, error: (err) => { console.error(err); loading.value = false; }
                     });
                 };
 
@@ -1186,15 +1192,49 @@ const compressImage = (file, maxWidth, quality) => {
                 const isFutureForecast = computed(() => displayWeather.value?.isForecast);
                 const sunsetTime = computed(() => displayWeather.value ? displayWeather.value.sunset : '--:--');
 
-                const groupedItinerary = computed(() => {
-                    const groups = {};
-                    itineraryData.value.forEach(item => {
-                        const dateKey = item.Date.trim();
-                        if (!groups[dateKey]) groups[dateKey] = [];
-                        groups[dateKey].push(item);
-                    });
-                    return Object.keys(groups).sort().reduce((acc, date) => { acc[date] = groups[date]; return acc; }, {});
-                });
+                // 搜尋 const groupedItinerary = computed(() => { ... });
+// 將其整段替換為：
+
+const groupedItinerary = computed(() => {
+    const groups = {};
+    
+    // 1. 先把資料分組 (這部分跟原本一樣)
+    itineraryData.value.forEach(item => {
+        const dateKey = item.Date.trim();
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(item);
+    });
+
+    // 2. 設定「今天」的標準 (把時間歸零，只比日期)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 3. 特殊排序邏輯
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const dateA = new Date(a);
+        const dateB = new Date(b);
+        
+        // 判斷 A 和 B 是否為「過去」
+        const isPastA = dateA < today;
+        const isPastB = dateB < today;
+
+        // 邏輯核心：
+        // 如果 A 是過去，B 是未來 -> 把 A 丟到後面 (return 1)
+        if (isPastA && !isPastB) return 1;
+        
+        // 如果 A 是未來，B 是過去 -> 把 A 放到前面 (return -1)
+        if (!isPastA && isPastB) return -1;
+        
+        // 如果兩個狀態一樣 (都是過去，或都是未來) -> 照正常日期順序排
+        return dateA - dateB;
+    });
+
+    // 4. 重新組裝物件
+    return sortedKeys.reduce((acc, date) => { 
+        acc[date] = groups[date]; 
+        return acc; 
+    }, {});
+});
                 const dateKeys = computed(() => Object.keys(groupedItinerary.value));
                 const totalExpense = computed(() => expenses.value.reduce((sum, item) => sum + (parseInt(item.amount)||0), 0));
                 const getPersonTotal = (name) => { return expenses.value.filter(e => e.payer === name).reduce((sum, e) => sum + (parseInt(e.amount)||0), 0); };
