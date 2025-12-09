@@ -119,22 +119,25 @@ body {
         <header class="relative w-full h-[250px] shadow-md z-20 flex-shrink-0 bg-slate-200">
             <transition name="banner">
                 <img 
-                    :key="bannerImage"
-                    :src="bannerImage" 
-                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1548263594-a71ea65a8598?auto=format&fit=crop&q=80&w=1920';"
-                    alt="Header Banner" 
-                    class="absolute inset-0 w-full h-full object-cover object-center z-0 transition-opacity duration-500"
-                >
+                    @click="randomizeBanner"
+    :key="bannerImage"
+    :src="bannerImage"
+    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1548263594-a71ea65a8598?auto=format&fit=crop&q=80&w=1920';"
+    alt="Header Banner" 
+    class="absolute inset-0 w-full h-full object-cover object-center z-0 transition-opacity duration-500"
+>
             </transition>
             
-            <div class="absolute inset-0 bg-white/5 z-10"></div>
+            <div class="absolute inset-0 bg-white/5 z-10 pointer-events-none"></div>
 
-            <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full">
-                <div>
-                    <h1 class="...">
-    <i class="fas fa-city text-orange-300 mr-2 animate-pulse text-2xl"></i>
-    Tokyo
-</h1>
+            <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full pointer-events-none">
+    
+    <div class="pointer-events-auto">
+        <h1 class="...">
+            <i class="fas fa-city text-orange-300 mr-2 animate-pulse text-2xl"></i>
+            Tokyo
+        </h1>
+        
                     <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 text-slate-700 hover:bg-white/50 transition active:scale-90 shadow-md backdrop-blur-md border border-white/20 absolute top-6 right-6">
                         <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
                     </button>
@@ -726,7 +729,10 @@ const handleLocalImage = async (event) => {
         event.target.value = ''; // 清空選擇器，讓你可以重複選同一張
     }
 };
-
+const randomizeBanner = () => {
+    // 產生 1 到 5 的隨機整數
+    bannerVariant.value = Math.floor(Math.random() * 5) + 1;
+};
 // ====== 壓縮工具 (魔法咒語，不用改) ======
 const compressImage = (file, maxWidth, quality) => {
     return new Promise((resolve, reject) => {
@@ -1329,7 +1335,7 @@ const groupedItinerary = computed(() => {
                     memos, saveMemos, getItemKey, carInfo, saveCarInfo, showSettlementModal, settlementPlan, calculateSettlement, settlementTotal,
                     expenseMode, switchExpenseMode, isDeposit, publicFundBalance,
                     openEditModal, submitExpense, isEditing, syncParking, displayWeather, isFutureForecast, scrollToTop, scrollToDay,
-                    fetchRate, updateFromHkd, updateFromJpy, convertDriveLink,handleLocalImage
+                    fetchRate, updateFromHkd, updateFromJpy, convertDriveLink,handleLocalImage,bannerVariant,randomizeBanner
                 };
             }
         }).mount('#app');
