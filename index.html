@@ -770,8 +770,8 @@ const compressImage = (file, maxWidth, quality) => {
                 
                 // Default Phrase Data (Fallback)
                 const defaultPhrases = [ {cat: '餐廳', jp: '英語のメニューはありますか', pron: 'Eigo no menyu wa arimasuka', cn: '有英文菜單嗎？'}, {cat: '餐廳', jp: '会計をお願いします', pron: 'Kaikei o onegaishimasu', cn: '我要結帳'}, {cat: '餐廳', jp: 'おすすめは何ですか', pron: 'Osusume wa nan desu ka', cn: '有什麼推薦的嗎？'}, {cat: '自駕', jp: '満タン、レギュラーで', pron: 'Mantan, Regyura de', cn: '加滿油 (Regular)'}, {cat: '自駕', jp: '駐車場はどこですか', pron: 'Chushajo wa doko desu ka', cn: '停車場在哪裡？'}, {cat: '求助', jp: 'トイレはどこですか', pron: 'Toire wa doko desu ka', cn: '廁所在哪裡？'}, {cat: '求助', jp: 'すみません', pron: 'Sumimasen', cn: '不好意思 / 請問'} ];
-
                 const activeTab = ref('itinerary');
+                const bannerVariant = ref(1); 
                 const toolSubTab = ref('packing');
                 const loading = ref(false);
                 const syncingExpenses = ref(false);
@@ -1166,10 +1166,10 @@ complete: (results) => {
                 const refreshAll = () => { fetchItinerary(); fetchExpenses(); fetchWeather(); fetchRate(); };
 
                 const bannerImage = computed(() => {
-                    if (dateKeys.value.length === 0 || !selectedDay.value) return '1.jpg';
-                    const index = dateKeys.value.indexOf(selectedDay.value);
-                    return `${index + 1}.jpg`;
-                });
+    if (dateKeys.value.length === 0 || !selectedDay.value) return '1d1.jpg';
+    const dayIndex = dateKeys.value.indexOf(selectedDay.value) + 1;
+    return `${bannerVariant.value}d${dayIndex}.jpg`;
+});
                 const countdown = computed(() => {
                     const today = new Date();
                     const tripStart = new Date('2026-01-15');
@@ -1302,7 +1302,9 @@ const groupedItinerary = computed(() => {
                 const formatShortDate = (dateStr) => { if(!dateStr) return ''; try { const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; } catch (e) { return ''; } }
                 const getDayOfWeek = (dateStr) => { try { return ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][new Date(dateStr).getDay()]; } catch (e) { return ''; } };
 
-                watch(selectedDay, () => { if (itineraryContainer.value) itineraryContainer.value.scrollTop = 0; });
+                watch(selectedDay, () => {bannerVariant.value = Math.floor(Math.random() * 5) + 1;
+    if (itineraryContainer.value) itineraryContainer.value.scrollTop = 0; 
+});
                 watch(activeTab, (newTab) => {
                     // 如果切換到的新頁面是 'info' (資訊頁)
                     if (newTab === 'info') {
