@@ -729,9 +729,14 @@ const handleLocalImage = async (event) => {
         event.target.value = ''; // 清空選擇器，讓你可以重複選同一張
     }
 };
+const dailyBannerCounts = [6, 7, 6, 6]; 
+
 const randomizeBanner = () => {
-    // 產生 1 到 5 的隨機整數
-    bannerVariant.value = Math.floor(Math.random() * 5) + 1;
+    const dayIndex = dateKeys.value ? dateKeys.value.indexOf(selectedDay.value) : -1;
+   const maxCount = (dayIndex !== -1 && dailyBannerCounts[dayIndex]) 
+                     ? dailyBannerCounts[dayIndex] 
+                     : 5; 
+    bannerVariant.value = Math.floor(Math.random() * maxCount) + 1;
 };
 // ====== 壓縮工具 (魔法咒語，不用改) ======
 const compressImage = (file, maxWidth, quality) => {
@@ -1308,7 +1313,7 @@ const groupedItinerary = computed(() => {
                 const formatShortDate = (dateStr) => { if(!dateStr) return ''; try { const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; } catch (e) { return ''; } }
                 const getDayOfWeek = (dateStr) => { try { return ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][new Date(dateStr).getDay()]; } catch (e) { return ''; } };
 
-                watch(selectedDay, () => {bannerVariant.value = Math.floor(Math.random() * 5) + 1;
+                watch(selectedDay, () => { randomizeBanner();
     if (itineraryContainer.value) itineraryContainer.value.scrollTop = 0; 
 });
                 watch(activeTab, (newTab) => {
