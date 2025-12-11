@@ -133,10 +133,9 @@ body {
             <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full pointer-events-none">
     
     <div class="pointer-events-auto">
-        <h1 class="...">
-            <i class="fas fa-city text-orange-300 mr-2 animate-pulse text-2xl"></i>
-            Tokyo
-        </h1>
+        <h1 class="text-xs font-black text-slate-800 tracking-wider flex items-center bg-white/1 backdrop-blur-sm border border-white/30 rounded-full px-5 py-2 shadow-sm">
+    <i class="fas fa-city text-orange-600 mr-3 animate-pulse"></i>
+    Tokyo </h1>
         
                     <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 text-slate-700 hover:bg-white/50 transition active:scale-90 shadow-md backdrop-blur-md border border-white/20 absolute top-6 right-6">
                         <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
@@ -264,7 +263,7 @@ body {
 
                                             <div v-if="item.MapCode" class="mb-3"><div class="bg-[var(--color-bg)] px-3 py-2 rounded-xl flex items-center border border-slate-100"><i class="fas fa-car-side text-[var(--color-primary)] mr-3 text-lg opacity-80"></i><div class="flex flex-col"><span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">NAVI / MAPCODE</span><span class="font-mono text-base font-bold text-slate-700 tracking-wide">{{ item.MapCode }}</span></div></div></div>
                                             <div v-if="getFoodRecommendation(item)" class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-100"><div class="flex items-start"><span class="text-xl mr-2">💡</span><div><span class="text-[10px] text-yellow-600 font-black uppercase tracking-wider block mb-0.5">饕客推薦</span><span class="text-sm text-slate-700 font-bold leading-relaxed">{{ getFoodRecommendation(item) }}</span></div></div></div>
-                                            <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100"><span class="text-slate-400 mr-2 mt-0.5">●</span><span class="leading-relaxed text-xs break-all">{{ item.Note }}</span></div>
+                                            <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100"><span class="text-slate-400 mr-2 mt-0.5">●</span><span class="leading-relaxed text-xs break-all" v-html="formatNote(item.Note)"></span></div>
                                             
                                             <div class="mt-4 pt-3 border-t border-slate-100">
                                                 <div class="relative">
@@ -332,7 +331,7 @@ body {
                 </div>
 
                 <div v-else-if="activeTab === 'tools'" key="tools" class="-mt-2">
-                    <div class="flex p-1 bg-white rounded-xl mb-4 mx-1 border border-slate-200"><button v-for="tab in ['packing', 'shopping', 'phrase', 'car']" :key="tab" @click="toolSubTab = tab" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="toolSubTab === tab ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-slate-400'"><span v-if="tab==='packing'">🎒 行李</span><span v-else-if="tab==='shopping'">🎁 代購</span><span v-else-if="tab==='phrase'">🗣️ 日語</span><span v-else>🅿️ 停車</span></button></div>
+                    <div class="flex p-1 bg-white rounded-xl mb-4 mx-1 border border-slate-200"><button v-for="tab in ['packing', 'shopping', 'phrase']" :key="tab" @click="toolSubTab = tab" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="toolSubTab === tab ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-slate-400'"><span v-if="tab==='packing'">🎒 行李</span><span v-else-if="tab==='shopping'">🎁 代購</span><span v-else-if="tab==='phrase'">🗣️ 日語</span></button></div>
                     <div v-if="toolSubTab === 'packing'" class="pb-24"><div class="bg-white card-rounded p-5 border border-slate-50 mx-1"><h3 class="font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-suitcase-rolling mr-2 text-[var(--color-primary)]"></i> 雪國自駕必備</h3><div class="space-y-3"><div v-for="(item, idx) in packingList" :key="idx" class="flex items-center p-3 rounded-xl border transition-all" :class="item.checked ? 'bg-slate-50 border-slate-100 opacity-60' : 'bg-white border-slate-200'" @click="togglePacking(idx)"><div class="w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 transition-colors" :class="item.checked ? 'bg-emerald-400 border-emerald-400 text-white' : 'border-slate-300'"><i class="fas fa-check text-xs" v-if="item.checked"></i></div><span class="text-sm font-bold" :class="item.checked ? 'text-slate-400 line-through' : 'text-slate-700'">{{ item.text }}</span></div></div></div></div>
                     
                     <div v-else-if="toolSubTab === 'shopping'" class="pb-32 px-3">
@@ -488,41 +487,6 @@ body {
                             </div>
                         </div>
                     </div>
-                    
-                    <div v-else-if="toolSubTab === 'car'" class="pb-24">
-                        <div class="bg-white card-rounded p-6 border border-slate-50 shadow-sm mx-1">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-800 flex items-center"><i class="fas fa-car mr-2 text-[var(--color-primary)]"></i> 停車/租車</h3>
-                                <button @click="syncParking" class="text-xs bg-[var(--color-primary)] text-white px-3 py-1.5 rounded-full font-bold active:scale-95 transition" :disabled="isSaving"><i class="fas fa-cloud-upload-alt mr-1"></i>{{ isSaving ? '更新中' : '同步' }}</button>
-                            </div>
-                            
-                            <div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">車牌號碼</label><input v-model="carInfo.plate" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 text-center text-3xl font-black text-slate-700 tracking-widest uppercase focus:border-[var(--color-primary)] focus:outline-none" placeholder="12-34"></div>
-                            <div class="flex gap-3 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">樓層 Floor</label><input v-model="carInfo.floor" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="B1"></div><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">區域 Zone</label><input v-model="carInfo.zone" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="G區"></div></div>
-                            
-                            <div class="mb-4">
-                                <label class="block text-xs font-bold text-slate-400 mb-1">圖片網址 (選填)</label>
-                                <input v-model="carInfo.imageUrl" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-600 focus:border-[var(--color-primary)] focus:outline-none mb-2" placeholder="https://...">
-                                
-                                <div v-if="carInfo.imageUrl" class="mb-3 relative rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100 flex items-center justify-center min-h-[150px]">
-                                    <img 
-                                        :src="convertDriveLink(carInfo.imageUrl)" 
-                                        class="w-full h-auto object-cover" 
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
-                                    >
-                                    <div class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400 bg-slate-50 p-4 text-center">
-                                        <i class="fas fa-image-slash text-2xl mb-2"></i>
-                                        <span class="text-xs font-bold">圖片無法讀取</span>
-                                        <span class="text-[10px] mt-1">請右鍵點擊圖片選『複製圖片位址』</span>
-                                    </div>
-                                </div>
-                                
-                                <a href="https://imgbb.com/upload" target="_blank" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-bold py-2 rounded-lg text-center border border-dashed border-slate-300"><i class="fas fa-camera mr-1"></i> 上傳圖片 (複製連結貼回上方)</a>
-                            </div>
-
-                            <div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">備註</label><textarea v-model="carInfo.note" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" rows="3" placeholder="例如：停在電梯口附近..."></textarea></div>
-                            <div class="text-[10px] text-slate-400 bg-slate-50 p-2 rounded"><i class="fas fa-info-circle mr-1"></i> 點擊上方「同步」按鈕，可將資訊上傳給旅伴。</div>
-                        </div>
-                    </div>
                 </div>
 
                 <div v-else-if="activeTab === 'info'" key="info" class="-mt-4">
@@ -591,43 +555,63 @@ body {
         </nav>
 
         <div v-if="showExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" @click.self="showExpenseModal = false">
-            <div class="bg-white card-rounded w-full max-w-sm p-8 shadow-2xl transform transition-all border border-white">
-                <h3 class="text-xl font-bold mb-8 text-slate-800 flex items-center">
-                    <i class="fas fa-edit mr-3 text-[var(--color-primary)]"></i>
-                    {{ isEditing ? '編輯支出' : (expenseMode === 'expense' ? '新增支出' : '公費入金') }}
-                </h3>
-                <div class="flex p-1 bg-slate-100 rounded-xl mb-6" v-if="!isEditing">
-                    <button @click="switchExpenseMode('expense')" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all" :class="expenseMode === 'expense' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'">支出</button>
-                    <button @click="switchExpenseMode('deposit')" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all" :class="expenseMode === 'deposit' ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-slate-400'">入金</button>
+    <div class="bg-white card-rounded w-full max-w-sm p-6 shadow-2xl transform transition-all border border-white">
+        
+        <h3 class="text-xl font-bold mb-6 text-slate-800 flex items-center">
+            <i class="fas fa-edit mr-3 text-[var(--color-primary)]"></i>
+            {{ isEditing ? '編輯支出' : '新增支出' }}
+        </h3>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">金額 (JPY)</label>
+                <input type="number" v-model="newExpense.amount" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-3xl text-center text-slate-800 font-black focus:ring-2 focus:ring-[var(--color-primary)] transition font-mono" placeholder="0" inputmode="numeric">
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">項目分類</label>
+                <div class="grid grid-cols-5 gap-2">
+                    <button v-for="cat in ['食', '門票', '手信', '車費', '其他']" 
+                            :key="cat"
+                            @click="setExpenseCategory(cat)"
+                            class="py-2 rounded-xl text-xs font-bold transition-all border"
+                            :class="tempCategory === cat ? 'bg-orange-100 text-orange-600 border-orange-200 ring-2 ring-orange-100' : 'bg-white text-slate-500 border-slate-100 hover:bg-slate-50'">
+                        {{ cat }}
+                    </button>
                 </div>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">金額 (JPY)</label>
-                        <input type="number" v-model="newExpense.amount" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-xl text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition font-mono" placeholder="1000" inputmode="numeric">
-                    </div>
-                    <div v-if="expenseMode === 'expense' || isEditing">
-                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">項目說明</label>
-                        <input type="text" v-model="newExpense.description" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition" placeholder="例如: 拉麵">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">{{ (expenseMode === 'expense' || isEditing) ? '誰先付的？' : '誰繳公費？' }}</label>
-                        <div class="relative">
-                            <select v-model="newExpense.payer" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] appearance-none">
-                                <option v-for="person in people" :key="person" :value="person">{{ person }}</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-5 top-5 text-slate-400 pointer-events-none"></i>
-                        </div>
-                    </div>
+            </div>
+
+            <div>
+                <div class="relative">
+                    <input type="text" v-model="tempDetails" class="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-sm text-slate-700 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition" placeholder="(選填) 詳細說明...">
                 </div>
-                <div class="mt-10 flex space-x-4">
-                    <button @click="showExpenseModal = false" class="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition">取消</button>
-                    <button @click="submitExpense" :disabled="isSaving" class="flex-1 py-4 text-white rounded-2xl font-bold hover:opacity-90 transition shadow-lg shadow-blue-900/20 flex justify-center items-center" :class="(expenseMode === 'expense' || isEditing) ? 'bg-[var(--color-primary)]' : 'bg-emerald-500'">
-                        <span v-if="isSaving"><i class="fas fa-circle-notch fa-spin mr-2"></i>儲存中</span>
-                        <span v-else>{{ isEditing ? '更新' : '儲存' }}</span>
+            </div>
+
+            <div>
+                <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">誰先付的？</label>
+                <div class="flex gap-3">
+                    <button v-for="person in people" 
+                            :key="person" 
+                            @click="newExpense.payer = person"
+                            class="flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center border-2"
+                            :class="newExpense.payer === person ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-md transform scale-[1.02]' : 'border-slate-100 bg-white text-slate-400 hover:bg-slate-50'">
+                        <i class="fas fa-check-circle mr-2" v-if="newExpense.payer === person"></i>
+                        <i class="far fa-circle mr-2 opacity-50" v-else></i>
+                        {{ person }}
                     </button>
                 </div>
             </div>
         </div>
+
+        <div class="mt-8 flex space-x-3">
+            <button @click="showExpenseModal = false" class="flex-1 py-3 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition">取消</button>
+            <button @click="submitExpense" :disabled="isSaving" class="flex-1 py-3 bg-[var(--color-primary)] text-white rounded-2xl font-bold hover:opacity-90 transition shadow-lg flex justify-center items-center">
+                <span v-if="isSaving"><i class="fas fa-circle-notch fa-spin mr-2"></i>處理中</span>
+                <span v-else>確認儲存</span>
+            </button>
+        </div>
+    </div>
+</div>
         
         <div v-if="showPhraseEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" @click.self="showPhraseEditModal = false">
             <div class="bg-white card-rounded w-full max-w-sm p-6 shadow-2xl transform transition-all border border-white">
@@ -803,7 +787,10 @@ const compressImage = (file, maxWidth, quality) => {
                 const expenses = ref([]);
                 const newExpense = ref({ amount: '', description: '', payer: '公數' });
                 const expenseMode = ref('expense');
-                
+                const tempCategory = ref('食'); // 預設分類
+                const tempDetails = ref('');    // 預設詳情
+                const setExpenseCategory = (cat) => {tempCategory.value = cat;};
+
                 // Phrasebook Logic (New with Cloud Sync)
                 const phrasebook = ref(JSON.parse(localStorage.getItem('tokyo_phrases')) || defaultPhrases);
                 const selectedPhrase = ref(null);
@@ -1055,17 +1042,18 @@ complete: (results) => {
                 };
 
                 const submitExpense = async () => {
-                    if (!newExpense.value.amount) return;
-                    if ((expenseMode.value === 'expense' || isEditing.value) && /^\d+$/.test(newExpense.value.description)) {
-                        alert("項目說明不能只有數字！請輸入具體內容 (例如: 午餐)");
-                        return;
-                    }
+    if (!newExpense.value.amount) return;
+
+    // 組合 Description： "分類: 詳情" 或 只有 "分類"
+    let finalDesc = tempCategory.value;
+    if (tempDetails.value) {
+        finalDesc = `${tempCategory.value}: ${tempDetails.value}`;
+    }
+    newExpense.value.description = finalDesc; // 賦值回去
 
                     if (!APPS_SCRIPT_URL) { alert("請先設定 Apps Script 網址！"); return; }
                     isSaving.value = true;
-                    let finalDesc = newExpense.value.description;
-                    if (expenseMode.value === 'deposit') { finalDesc = finalDesc.includes('(入金)') ? finalDesc : `(入金) ${finalDesc}`; }
-                    
+                                        
                     // ==========================================
                     // ★★★ CRITICAL FIX: SEND ID AND ACTION ★★★
                     // ==========================================
@@ -1115,17 +1103,29 @@ complete: (results) => {
                 const addExpense = submitExpense; 
 
                 const openEditModal = (item = null) => {
-                    if (item) {
-                        isEditing.value = true; editingId.value = item.id;
-                        newExpense.value = { amount: parseInt(item.amount), description: item.description || item.item, payer: item.payer };
-                        expenseMode.value = isDeposit(item) ? 'deposit' : 'expense';
-                    } else {
-                        isEditing.value = false; editingId.value = null;
-                        newExpense.value = { amount: '', description: '', payer: 'IVAN' };
-                        expenseMode.value = 'expense';
-                    }
-                    showExpenseModal.value = true;
-                };
+    if (item) {
+        isEditing.value = true; 
+        editingId.value = item.id;
+        newExpense.value = { amount: parseInt(item.amount), payer: item.payer };
+        
+        // 嘗試拆解舊的 description (例如 "食: 拉麵" -> Cat: 食, Detail: 拉麵)
+        const parts = (item.description || '').split(': ');
+        if (parts.length > 1 && ['食', '門票', '手信', '車費', '其他'].includes(parts[0])) {
+            tempCategory.value = parts[0];
+            tempDetails.value = parts[1];
+        } else {
+            tempCategory.value = '其他';
+            tempDetails.value = item.description || '';
+        }
+    } else {
+        isEditing.value = false; 
+        editingId.value = null;
+        newExpense.value = { amount: '', payer: 'IVAN' }; // 預設付款人
+        tempCategory.value = '食';
+        tempDetails.value = '';
+    }
+    showExpenseModal.value = true;
+};
 
                 const deleteExpense = async (item) => {
                     if (!item.id) { alert("無法刪除舊資料 (無 ID)"); return; }
@@ -1308,7 +1308,12 @@ const groupedItinerary = computed(() => {
                     }
                     return null;
                 };
-
+                const formatNote = (text) => {
+    if (!text) return '';
+    // 把網址轉成超連結的正規表達式
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-500 underline font-bold relative z-20">$1</a>');
+};
                 const formatDate = (dateStr) => { try { const d = new Date(dateStr); return `${d.getMonth() + 1}月${d.getDate()}日`; } catch (e) { return dateStr; } };
                 const formatShortDate = (dateStr) => { if(!dateStr) return ''; try { const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; } catch (e) { return ''; } }
                 const getDayOfWeek = (dateStr) => { try { return ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][new Date(dateStr).getDay()]; } catch (e) { return ''; } };
@@ -1340,7 +1345,7 @@ const groupedItinerary = computed(() => {
                     memos, saveMemos, getItemKey, carInfo, saveCarInfo, showSettlementModal, settlementPlan, calculateSettlement, settlementTotal,
                     expenseMode, switchExpenseMode, isDeposit, publicFundBalance,
                     openEditModal, submitExpense, isEditing, syncParking, displayWeather, isFutureForecast, scrollToTop, scrollToDay,
-                    fetchRate, updateFromHkd, updateFromJpy, convertDriveLink,handleLocalImage,bannerVariant,randomizeBanner
+                    fetchRate, updateFromHkd, updateFromJpy, convertDriveLink,handleLocalImage,bannerVariant,randomizeBanner,formatNote,tempCategory, tempDetails, setExpenseCategory,
                 };
             }
         }).mount('#app');
